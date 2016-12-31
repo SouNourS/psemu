@@ -7,20 +7,27 @@
 
 class LoginMessage {
 public:
-    unsigned int majorVersion;
-    unsigned int minorVersion;
+    enum CredentialsType {
+        CT_UserPassword,
+        CT_UserToken
+    };
+
+    uint32_t majorVersion;
+    uint32_t minorVersion;
     std::string buildDate;
+    bool credentialsType;
     std::string username;
     std::string password;
-    std::array<unsigned char, 32> token;
-    unsigned int revision;
+    std::array<uint8_t, 32> token;
+    uint32_t revision;
 
     static LoginMessage decode(BitStream& bitStream) {
         LoginMessage packet;
         bitStream.read(&packet.majorVersion);
         bitStream.read(&packet.minorVersion);
         readString(bitStream, packet.buildDate);
-        if (!bitStream.readBit()) {
+        packet.credentialsType = bitStream.readBit();
+        if (packet.credentialsType == CT_UserPassword) {
             readString(bitStream, packet.username);
             readString(bitStream, packet.password);
         } else {
